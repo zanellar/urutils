@@ -1,6 +1,8 @@
+import math
 import sys
 import time
 from urutils.urproxy import URProxy
+import socket
 
 
 def callback(msg):
@@ -9,43 +11,45 @@ def callback(msg):
 
 IPROBOT = "192.168.7.235"
 IPCOMPUTER = "192.168.7.114"
-FEEDBACKPORT = 55555
+OUTPUTPORT = 55555
+INPUTPORT = 4000
+
 robot = URProxy(IPROBOT)
 
+robot.setInputProxy(hostip=IPCOMPUTER,
+                    port=INPUTPORT,
+                    preloadscript=True)
+
 robot.setOutputProxy(hostip=IPCOMPUTER,
-                     port=FEEDBACKPORT,
+                     port=OUTPUTPORT,
                      callback=callback,
                      preloadscript=True)
 
 
-###########################################################################
-
-
-robot.do("movej", ([0, -1.57, +1.57, -1.57, -1.57, +1.57], 0.5, 0.5))
-
 prog_test = [
-    'x = get_actual_joint_positions()',
-    'output(1)',
-    "sleep(0.5)",
-    "movej([0, -1.57, +1.57, -1.57, -1.57, +1.57], 0.5, 0.5)",
-    "i = 0",
-    "while i<5:",
-    'output(i)',
-    "movej([0, -1.57, +1.57, -1.57, -1.37, +1.57], 0.5, 0.5)",
-    "movej([0, -1.57, +1.57, -1.57, -1.77, +1.57], 0.5, 0.5)",
-    "i = i + 1",
-    'output(-1)',
-    "end"   # end while
-
+    'while True:',
+    'if input_data[0]>0:',
+    'x = input_data[1]',
+    'output(x)',
+    'movej([0, -1.57, +1.57, -1.57, x, +1.57], 0.5, 0.5)',
+    'end',
+    'sleep(1)',
+    'end'
 ]
-
 robot.load(prog_test)
 
 
 ###########################################################################
+
 try:
+    t = 0
+    w = 0.1
+    d = 0.5
     while True:
-        time.sleep(1)
+        t += 1
+        x = float(-math.pi/2 + d*math.sin(w*t))
+        robot.input("({})".format('%.2f' % x))
+        time.sleep(0.5)
 except KeyboardInterrupt:
     stored_exception = sys.exc_info()
 
