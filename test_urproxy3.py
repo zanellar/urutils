@@ -4,7 +4,7 @@ import time
 from urutils.urproxy import URProxy
 import socket
 
-# p[-0.486818,-0.110876,0.430771,-3.12873,-0.00872855,-0.000941246]
+''' Example of program to get a feedback on the tool current pose from the robot'''
 
 
 def callback(msg):

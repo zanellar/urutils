@@ -4,6 +4,9 @@ from urutils.urproxy import URProxy
 import socket
 
 
+''' Example of program to send an input float data to the robot'''
+
+
 IPROBOT = "192.168.7.235"
 IPCOMPUTER = "192.168.7.114"
 INPUTPORT = 4000

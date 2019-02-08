@@ -4,6 +4,8 @@ import time
 from urutils.urproxy import URProxy
 import socket
 
+''' Example of program to get an output float data from the robot'''
+
 
 def callback(msg):
     print(msg)
