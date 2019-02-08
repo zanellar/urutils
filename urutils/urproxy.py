@@ -26,10 +26,11 @@ class RobotIOProxy(object):
     def _waitMessage(self):
         print("Connecting to client ...")
         client_socket, addr = self.socket.accept()
-        print("Connected!")
+        print("Connected! ({}, {})".format(self.ip, self.port))
         while self.message_thread.isAlive():
-            print("Waiting for message...")
+            # print("Waiting for message...")
             self.last_message = client_socket.recv(1024)
+            # print("Received:", self.last_message)
             time.sleep(0.001)       # BUG required ???????????????????????
             try:
                 if self.callback is not None:
@@ -80,20 +81,12 @@ class RobotCommandProxy(object):
         try:
             self.socket.connect((self.ip, self.port))
         except:
-            print("NO conection ({}, {})".format(self.ip, port))
+            print("NO connection ({}, {})".format(self.ip, port))
         else:
-            print("conected! ({}, {})".format(self.ip, port))
+            print("Connected! ({}, {})".format(self.ip, port))
 
         # Variables
         self.is_ready = True
-
-    def sendData(self, data_str, ack=True):
-        print("sending...", data_str)
-        self.socket.send(data_str.encode())
-        res = self.socket.recv(1024)
-
-        if ack:
-            print("received: ", repr(res))
 
     def sendCommand(self, cmd_str, ack=True):
         self.is_ready = False
@@ -111,10 +104,6 @@ class RobotCommandProxy(object):
         if ack:
             print("Received", repr(res))
 
-    def close(self):
-        # Close connection to robot
-        self.socket.close()
-
     def sendProgram(self, prg_list):
         prg_str = "def myProg():" + RobotCommandProxy.EOC
         identspace = " "
@@ -122,6 +111,10 @@ class RobotCommandProxy(object):
             prg_str += identspace + line + RobotCommandProxy.EOC
         prg_str = prg_str + "end" + RobotCommandProxy.EOC
         self.sendCommand(prg_str)
+
+    def close(self):
+        # Close connection to robot
+        self.socket.close()
 
 
 ##############################################################################################
@@ -149,19 +142,19 @@ class URProxy(object):
         elif self.callback is not None:
             self.callback(msg)
 
-    def setOutputProxy(self, hostip,  port=55555, callback=None, preloadscript=False):
+    def setOutputProxy(self, hostip,  port=55555, callback=None, preloadscript=False, datadef=[]):
         self.robot_output_server = RobotIOProxy(
             hostip="0.0.0.0",
             port=port
         )
         if callback is not None:
             self.callback = callback
-        self.robot_output_server .registerCallback(self._robotOutput)
-        self.robot_output_server .connectClient()
+        self.robot_output_server.registerCallback(self._robotOutput)
+        self.robot_output_server.connectClient()
         if preloadscript:
-            self._prog_output_script = self._loadOutputScript(hostip, port)
+            self._prog_output_script = self._loadDataDef("output_data", datadef) + self._loadOutputScript(hostip, port)
 
-    def setInputProxy(self, hostip, port=4000, n_inputs=1, preloadscript=False):
+    def setInputProxy(self, hostip, port=4000,  preloadscript=False,  n_inputs=1, datadef=[]):
         self.robot_input_server = RobotIOProxy(
             hostip=hostip,
             port=port
@@ -211,6 +204,12 @@ class URProxy(object):
         if self.robot_output_server is not None:
             self.robot_output_server .close()
 
+    def _loadDataDef(self, varname, datadef):
+        _prog = [
+            'global {} = {}'.format(varname, datadef)
+        ]
+        return _prog
+
     def _loadInputScript(self, ip, port, n_inputs):
         _prog = [
             'global input_data = {}'.format([0.0]*(n_inputs+1)),
@@ -226,8 +225,8 @@ class URProxy(object):
             'end',  # end while
             # cycle to receive the input
             'while True:',
-            'input_data = socket_read_ascii_float({}, "socket_input",30)'.format(n_inputs),
-            'sleep(0.01)',
+            'input_data = socket_read_ascii_float({}, "socket_input",1)'.format(n_inputs),
+            'sleep(0.000001)',
             'end',   # end while
             # close socket
             'socket_close("socket_input")',
@@ -242,7 +241,6 @@ class URProxy(object):
     def _loadOutputScript(self, ip, port):
         _prog = [
 
-            'global output_data = 0',  # BUG this should be a byte??? ho to get float
             'global trigger_output = False',
 
             ########################################
@@ -260,8 +258,8 @@ class URProxy(object):
             'while True:',
             'if trigger_output:',
             # send
-            'socket_send_string(output_data,"socket_output")',  # TODO: int, string, byte
             'trigger_output = False',
+            'socket_send_string(output_data,"socket_output")',  # TODO: int, string, byte
             'end',  # end if
             'sleep(0.01)',
             'i = i + 1',

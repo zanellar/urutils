@@ -12,6 +12,7 @@ robot = URProxy(IPROBOT)
 
 robot.setInputProxy(hostip=IPCOMPUTER,
                     port=INPUTPORT,
+                    n_inputs=1,
                     preloadscript=True)
 
 

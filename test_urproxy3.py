@@ -4,9 +4,17 @@ import time
 from urutils.urproxy import URProxy
 import socket
 
+# p[-0.486818,-0.110876,0.430771,-3.12873,-0.00872855,-0.000941246]
+
 
 def callback(msg):
-    print(msg)
+    decodepose(msg)
+
+
+def decodepose(data):
+    y = data.decode("utf-8").split("p[")[1].split("]")[0].split(",")
+    w = [float(i) for i in y]
+    return w
 
 
 IPROBOT = "192.168.7.235"
@@ -18,25 +26,21 @@ robot = URProxy(IPROBOT)
 
 robot.setInputProxy(hostip=IPCOMPUTER,
                     port=INPUTPORT,
-                    preloadscript=True,
+                    preloadscript=False,
                     n_inputs=1)
 
 robot.setOutputProxy(hostip=IPCOMPUTER,
                      port=OUTPUTPORT,
                      callback=callback,
                      preloadscript=True,
-                     datadef='0.0')
-
+                     datadef='get_actual_tcp_pose()')
 
 prog_test = [
     'while True:',
-    'if input_data[0]>0:',
-    'x = input_data[1]',
-    'output(x)',
-    'movej([0, -1.57, +1.57, -1.57, x, +1.57], 0.5, 0.5)',
-    'else:',
+    'tcp_pose = get_actual_tcp_pose()',
+    'output(tcp_pose)',
+    'speedl([0.001, 0, 0, 0, 0, 0], 10, 10)',
     'sleep(0.01)',
-    'end',
     'end'
 ]
 robot.load(prog_test)
@@ -45,14 +49,8 @@ robot.load(prog_test)
 ###########################################################################
 
 try:
-    t = 0
-    w = 0.1
-    d = 0.5
     while True:
-        t += 1
-        x = float(-math.pi/2 + d*math.sin(w*t))
-        robot.input("({})".format('%.2f' % x))
-        time.sleep(0.5)
+        time.sleep(1)
 except KeyboardInterrupt:
     stored_exception = sys.exc_info()
 
