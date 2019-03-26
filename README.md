@@ -4,5 +4,5 @@ Take a look to this document https://docs.google.com/document/d/1z0swYVkXGgtdz2F
 
 
 # How to Use THIS-PACKAGE
-1. Add the path to this package (e.g. `<your-path>/this_package/`) to `PYTHONPATH` 
-    - `export PYTHONPATH=$PYTHONPATH:<your-path>/this_package/` 
+1. Add the path to this package (e.g. `<your-path>/urutils/`) to `PYTHONPATH` 
+    - `export PYTHONPATH=$PYTHONPATH:<your-path>/urutils/` 
