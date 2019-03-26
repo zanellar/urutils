@@ -18,5 +18,4 @@
 | 
 
 
-###### Only For Contributors:
-###### Document https://docs.google.com/document/d/1z0swYVkXGgtdz2F_kOrvMTWBbdT7cBIjx65f105yUps/edit# 
+###### Only For Contributors: https://docs.google.com/document/d/1z0swYVkXGgtdz2F_kOrvMTWBbdT7cBIjx65f105yUps/edit# 
