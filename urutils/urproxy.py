@@ -172,11 +172,20 @@ class URProxy(object):
             print("ERROR: Input data must be string-type")
 
     def do(self, command, args):
-        ''' e.g. robot.do("movej",([0,0,0,0,0,0,1],1,1))
+        ''' e.g. robot.do("movej",([q1,q2,q3,q4,a5,a6],0.5,0.5)) # joint space
+            e.g. robot.do("movel",([x,y,z,rx,ry,rz],0.5,0.25)) # cartesian space
         @param: command <str>
         @param: args <tuple>
         '''
         try:
+            if command == "movel":
+                # convert the argument pose (list) in format "p[x,y,z,rx,ry,rz]"
+                # and concatenate with the others arguments in a string
+                args_str = ['p{}'.format(args[0])]
+                for x in list(args[1:]):
+                    args_str.append(x)
+                args = "({})".format(",".join(map(str, args_str)))
+
             self.robot_command_client.sendCommand("{}{}".format(command, args))
         except:
             print("Syntax Error")
