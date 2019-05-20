@@ -88,7 +88,7 @@ class RobotCommandProxy(object):
         # Variables
         self.is_ready = True
 
-    def sendCommand(self, cmd_str, ack=True):
+    def sendCommand(self, cmd_str, ack=False):
         self.is_ready = False
         print("sending...", cmd_str)
 
@@ -104,13 +104,13 @@ class RobotCommandProxy(object):
         if ack:
             print("Received", repr(res))
 
-    def sendProgram(self, prg_list):
+    def sendProgram(self, prg_list, ack=True):
         prg_str = "def myProg():" + RobotCommandProxy.EOC
         identspace = " "
         for line in prg_list:
             prg_str += identspace + line + RobotCommandProxy.EOC
         prg_str = prg_str + "end" + RobotCommandProxy.EOC
-        self.sendCommand(prg_str)
+        self.sendCommand(prg_str, ack=ack)
 
     def close(self):
         # Close connection to robot
@@ -171,7 +171,7 @@ class URProxy(object):
         else:
             print("ERROR: Input data must be string-type")
 
-    def do(self, command, args):
+    def do(self, command, args, ack=True):
         ''' e.g. robot.do("movej",([q1,q2,q3,q4,a5,a6],0.5,0.5)) # joint space
             e.g. robot.do("movel",([x,y,z,rx,ry,rz],0.5,0.25)) # cartesian space
         @param: command <str>
@@ -186,7 +186,7 @@ class URProxy(object):
                     args_str.append(x)
                 args = "({})".format(",".join(map(str, args_str)))
 
-            self.robot_command_client.sendCommand("{}{}".format(command, args))
+            self.robot_command_client.sendCommand("{}{}".format(command, args), ack=ack)
         except:
             print("Syntax Error")
 
